@@ -5,8 +5,8 @@ import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torch.utils.data import SubsetRandomSampler, DataLoader
-from src.config import Config
-from src.nets import Net
+from config import Config
+from nets import Net
 
 SHOW_SAMPLES = True
 EPOCHS = 10
