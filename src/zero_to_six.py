@@ -83,6 +83,9 @@ model.eval()
 acc, count = 0, 0
 with torch.no_grad():
     for images, labels in valloader:
+        images = images.cuda()
+        labels = labels.cuda()
+
         logps = model(images)
         ps = torch.exp(logps)
         pred_labels = torch.argmax(ps, 1)
