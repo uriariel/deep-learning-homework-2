@@ -41,7 +41,7 @@ valloader = DataLoader(valset, batch_size=64, sampler=SubsetRandomSampler(datase
 
 # image size is 28x28
 torch.manual_seed(42)
-model = Net(D=1, H1=10, H2=20, class_count=10)
+model = Net(D=1, H1=10, H2=20, class_count=10).cuda()
 model.train()
 
 criterion = nn.NLLLoss()
@@ -53,6 +53,8 @@ time0 = time()
 for e in range(EPOCHS):
     running_loss = 0
     for images, labels in trainloader:
+        images = images.cuda()
+        labels = labels.cuda()
         # Flatten MNIST images into a 784 long vector
         # images = images.view(images.shape[0], -1)
 
