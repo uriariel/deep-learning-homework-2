@@ -24,14 +24,15 @@ def train_from_transfer():
     model.conv1.weight.requires_grad = False
     model.conv1.bias.requires_grad = False
     model.conv2.weight.requires_grad = False
-    model.conv2.weight.requires_grad = False
-    model.fc2 = nn.Linear(50, 10)
+    model.conv2.bias.requires_grad = False
+    model.fc2 = nn.Linear(50, 10).cuda()
+
 
     return model
 
 
 def train_regular():
-    return Net(D=1, H1=10, H2=20, class_count=10)
+    return Net(D=1, H1=10, H2=20, class_count=10).cuda()
 
 
 trainset = datasets.MNIST(Config.training_data_path, download=False, train=True, transform=transform)
@@ -58,7 +59,7 @@ valloader = DataLoader(valset, batch_size=64, sampler=SubsetRandomSampler(datase
 # image size is 28x28
 torch.manual_seed(42)
 
-model = train_regular()
+model = train_from_transfer()
 model.train()
 
 criterion = nn.NLLLoss()
@@ -72,7 +73,8 @@ for e in range(EPOCHS):
     for images, labels in trainloader:
         # Flatten MNIST images into a 784 long vector
         # images = images.view(images.shape[0], -1)
-
+        images = images.cuda()
+        labels = labels.cuda()
         # Training pass
         optimizer.zero_grad()
 
@@ -91,13 +93,15 @@ for e in range(EPOCHS):
 
 print("\nTraining Time (in minutes) =", (time() - time0) / 60)
 
-torch.save(model, 'zero_to_six.pt')
+#torch.save(model, 'zero_to_six.pt')
 
 model.eval()
 
 acc, count = 0, 0
 with torch.no_grad():
     for images, labels in valloader:
+        images = images.cuda()
+        labels = labels.cuda()
         logps = model(images)
         ps = torch.exp(logps)
         pred_labels = torch.argmax(ps, 1)
