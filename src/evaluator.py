@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 
 class NetworkEvaluator:
@@ -98,10 +98,10 @@ class NetworkEvaluator:
         return len(list(model.parameters()))
 
     @staticmethod
-    def plot_losses(epochs, train_loss, test_loss):
+    def plot_losses(epochs, train_loss, test_loss, title = ''):
         plt.plot(epochs, train_loss, 'r')
         plt.plot(epochs, test_loss, 'b')
-        plt.title('red - train loss, blue - test loss')
+        plt.title(title + ' red - train loss, blue - test loss')
         plt.show()
 
     @staticmethod
@@ -112,3 +112,6 @@ class NetworkEvaluator:
         ynp = y_test.data.numpy()
 
         return 100 * (np.count_nonzero(ynp == pred) / len(pred))
+
+
+
