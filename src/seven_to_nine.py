@@ -59,7 +59,7 @@ valloader = DataLoader(valset, batch_size=64, sampler=SubsetRandomSampler(datase
 # image size is 28x28
 torch.manual_seed(42)
 
-model = train_from_transfer()
+model = train_regular().cuda()
 model.train()
 
 criterion = nn.NLLLoss()
@@ -93,7 +93,6 @@ for e in range(EPOCHS):
 
 print("\nTraining Time (in minutes) =", (time() - time0) / 60)
 
-#torch.save(model, 'zero_to_six.pt')
 
 model.eval()
 
@@ -102,6 +101,7 @@ with torch.no_grad():
     for images, labels in valloader:
         images = images.cuda()
         labels = labels.cuda()
+
         logps = model(images)
         ps = torch.exp(logps)
         pred_labels = torch.argmax(ps, 1)
