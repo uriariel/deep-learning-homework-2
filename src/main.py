@@ -7,10 +7,17 @@ from torchvision import datasets, transforms
 from torch.utils.data import SubsetRandomSampler, DataLoader
 from config import Config
 from nets import Net
-from evaluator import NetworkEvaluator
+
 SHOW_SAMPLES = True
 NEED_TO_LEARN_ZERO_TO_SIX = True
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+
+
+def plot_losses(epochs, train_loss, test_loss, title=''):
+    plt.plot(epochs, train_loss, 'r')
+    plt.plot(epochs, test_loss, 'b')
+    plt.title(title + ' red - train loss, blue - test loss')
+    plt.show()
 
 
 def dataset_split_rule(x_set, min, max):
@@ -31,7 +38,7 @@ def empty_net():
     return Net(D=1, H1=10, H2=20, class_count=10).cuda()
 
 
-def train_model(train_data,test_data, model, optimizer,criterion = nn.NLLLoss(), epochs = 15, title = ''):
+def train_model(train_data, test_data, model, optimizer, criterion=nn.NLLLoss(), epochs=15, title=''):
     model.train()
     time0 = time()
     train_losses = []
@@ -59,11 +66,12 @@ def train_model(train_data,test_data, model, optimizer,criterion = nn.NLLLoss(),
             running_loss += loss.item()
         else:
             train_losses += [(running_loss / len(train_data))]
-            test_losses += [sum([criterion(model(images.cuda()), test_labels.cuda()).item() for images, test_labels in test_data]) / len(test_data)]
+            test_losses += [sum([criterion(model(images.cuda()), test_labels.cuda()).item() for images, test_labels in
+                                 test_data]) / len(test_data)]
             print("Epoch {} - Training loss: {}".format(e, running_loss / len(train_data)))
 
     print("\nTraining Time (in minutes) =", (time() - time0) / 60)
-    NetworkEvaluator.plot_losses(torch.linspace(1, epochs, epochs),train_losses, test_losses, title)
+    plot_losses(torch.linspace(1, epochs, epochs), train_losses, test_losses, title)
 
 
 def evaluate_model(test_data, model):
@@ -81,14 +89,15 @@ def evaluate_model(test_data, model):
 
     print("\nModel Accuracy =", acc / count)
 
+
 def main():
     trainset = datasets.MNIST(Config.training_data_path, download=False, train=True, transform=transform)
     valset = datasets.MNIST(Config.test_data_path, download=False, train=False, transform=transform)
 
     train_data_zero_to_six = DataLoader(trainset, batch_size=64,
-                                          sampler=SubsetRandomSampler(dataset_split_rule(x_set=trainset, min=0, max=6)))
+                                        sampler=SubsetRandomSampler(dataset_split_rule(x_set=trainset, min=0, max=6)))
     test_data_zero_to_six = DataLoader(valset, batch_size=64,
-                                         sampler=SubsetRandomSampler(dataset_split_rule(x_set=valset, min=0, max=6)))
+                                       sampler=SubsetRandomSampler(dataset_split_rule(x_set=valset, min=0, max=6)))
     train_data_seven_to_nine = DataLoader(trainset, batch_size=64,
                                           sampler=SubsetRandomSampler(dataset_split_rule(x_set=trainset, min=7, max=9)))
     test_data_seven_to_nine = DataLoader(valset, batch_size=64,
@@ -105,7 +114,7 @@ def main():
                     test_data_zero_to_six,
                     model,
                     optimizer,
-                    title= "Question 3 learning the 0-6 model:")
+                    title="Question 3 learning the 0-6 model:")
 
         torch.save(model, 'zero_to_six.pt')
         evaluate_model(test_data_zero_to_six, model)
@@ -118,7 +127,7 @@ def main():
                 test_data_seven_to_nine,
                 model,
                 optimizer,
-                title= "Question 4 learning from 0-6 model:")
+                title="Question 4 learning from 0-6 model:")
 
     evaluate_model(test_data_seven_to_nine, model)
 
@@ -131,11 +140,11 @@ def main():
                 test_data_seven_to_nine,
                 model,
                 optimizer,
-                title= "Question 5 learning from scratch:")
+                title="Question 5 learning from scratch:")
 
     evaluate_model(test_data_seven_to_nine, model)
 
 
 if __name__ == '__main__':
     main()
-#torch.save(model, 'zero_to_six.pt')
+# torch.save(model, 'zero_to_six.pt')
