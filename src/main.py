@@ -10,13 +10,18 @@ from nets import Net
 
 SHOW_SAMPLES = True
 NEED_TO_LEARN_ZERO_TO_SIX = True
+EPOCHS = 12
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
 
 def plot_losses(epochs, train_loss, test_loss, title=''):
-    plt.plot(epochs, train_loss, 'r')
-    plt.plot(epochs, test_loss, 'b')
-    plt.title(title + ' red - train loss, blue - test loss')
+    plt.style.use("ggplot")
+    plt.plot(epochs, train_loss, 'r', label="Training Loss")
+    plt.plot(epochs, test_loss, 'b', label="Test Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend(loc="center")
+    plt.title(title)
     plt.show()
 
 
@@ -24,7 +29,7 @@ def dataset_split_rule(x_set, min, max):
     return [indx for indx, target_class in enumerate(x_set.targets) if target_class in range(min, max + 1)]
 
 
-def net_from_model(model_path):
+def transferred_network(model_path):
     model = torch.load(model_path)
     model.conv1.weight.requires_grad = False
     model.conv1.bias.requires_grad = False
@@ -34,11 +39,11 @@ def net_from_model(model_path):
     return model
 
 
-def empty_net():
+def empty_network():
     return Net(D=1, H1=10, H2=20, class_count=10).cuda()
 
 
-def train_model(train_data, test_data, model, optimizer, criterion=nn.NLLLoss(), epochs=15, title=''):
+def train_model(train_data, test_data, model, optimizer, criterion=nn.NLLLoss(), epochs=EPOCHS, title=''):
     model.train()
     time0 = time()
     train_losses = []
@@ -81,9 +86,8 @@ def evaluate_model(test_data, model):
         for images, labels in test_data:
             images = images.cuda()
             labels = labels.cuda()
-            logps = model(images)
-            ps = torch.exp(logps)
-            pred_labels = torch.argmax(ps, 1)
+
+            pred_labels = torch.argmax(torch.exp(model(images)), 1)
             acc += torch.sum(pred_labels == labels).item() / len(labels)
             count += 1
 
@@ -106,45 +110,44 @@ def main():
     torch.manual_seed(42)
 
     if NEED_TO_LEARN_ZERO_TO_SIX:
-        print("Question 3 learning the 0-6 model".center(100, '-'))
-        model = empty_net()
+        print("learning 0-6 model".center(100, '-'))
+        model = empty_network()
         optimizer = optim.Adam(model.parameters())
 
         train_model(train_data_zero_to_six,
                     test_data_zero_to_six,
                     model,
                     optimizer,
-                    title="Question 3 learning the 0-6 model:")
+                    title="0-6 model")
 
         torch.save(model, 'zero_to_six.pt')
         evaluate_model(test_data_zero_to_six, model)
 
-    print("Question 4 learning from 0-6 model".center(100, '-'))
-    model = net_from_model('zero_to_six.pt')
+    print("learning 7-9 based on 0-6 model:".center(100, '-'))
+    model = transferred_network('zero_to_six.pt')
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()))
 
     train_model(train_data_seven_to_nine,
                 test_data_seven_to_nine,
                 model,
                 optimizer,
-                title="Question 4 learning from 0-6 model:")
+                title="7-9 based on 0-6 model:")
 
     evaluate_model(test_data_seven_to_nine, model)
 
     print()
-    print("Question 5 learning from scratch".center(100, '-'))
-    model = empty_net()
+    print("learning 7-9 model from scratch".center(100, '-'))
+    model = empty_network()
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()))
 
     train_model(train_data_seven_to_nine,
                 test_data_seven_to_nine,
                 model,
                 optimizer,
-                title="Question 5 learning from scratch:")
+                title="7-9 model from scratch")
 
     evaluate_model(test_data_seven_to_nine, model)
 
 
 if __name__ == '__main__':
     main()
-# torch.save(model, 'zero_to_six.pt')
