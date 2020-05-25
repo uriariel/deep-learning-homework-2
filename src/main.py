@@ -10,7 +10,7 @@ from nets import Net
 
 SHOW_SAMPLES = True
 NEED_TO_LEARN_ZERO_TO_SIX = True
-EPOCHS = 12
+EPOCHS = 15
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
 
@@ -123,7 +123,7 @@ def main():
         torch.save(model, 'zero_to_six.pt')
         evaluate_model(test_data_zero_to_six, model)
 
-    print("learning 7-9 based on 0-6 model:".center(100, '-'))
+    print("learning 7-9 based on 0-6 model".center(100, '-'))
     model = transferred_network('zero_to_six.pt')
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()))
 
@@ -131,7 +131,7 @@ def main():
                 test_data_seven_to_nine,
                 model,
                 optimizer,
-                title="7-9 based on 0-6 model:")
+                title="7-9 based on 0-6 model")
 
     evaluate_model(test_data_seven_to_nine, model)
 
