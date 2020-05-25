@@ -8,8 +8,6 @@ from torch.utils.data import SubsetRandomSampler, DataLoader
 from config import Config
 from nets import Net
 
-SHOW_SAMPLES = True
-NEED_TO_LEARN_ZERO_TO_SIX = True
 EPOCHS = 15
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
@@ -109,19 +107,18 @@ def main():
 
     torch.manual_seed(42)
 
-    if NEED_TO_LEARN_ZERO_TO_SIX:
-        print("learning 0-6 model".center(100, '-'))
-        model = empty_network()
-        optimizer = optim.Adam(model.parameters())
+    print("learning 0-6 model".center(100, '-'))
+    model = empty_network()
+    optimizer = optim.Adam(model.parameters())
 
-        train_model(train_data_zero_to_six,
-                    test_data_zero_to_six,
-                    model,
-                    optimizer,
-                    title="0-6 model")
+    train_model(train_data_zero_to_six,
+                test_data_zero_to_six,
+                model,
+                optimizer,
+                title="0-6 model")
 
-        torch.save(model, 'zero_to_six.pt')
-        evaluate_model(test_data_zero_to_six, model)
+    torch.save(model, 'zero_to_six.pt')
+    evaluate_model(test_data_zero_to_six, model)
 
     print("learning 7-9 based on 0-6 model".center(100, '-'))
     model = transferred_network('zero_to_six.pt')
